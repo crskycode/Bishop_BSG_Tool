@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using System;
+using System.IO;
+using System.Text;
 
 namespace Bishop_BSG_Tool
 {
@@ -16,7 +15,7 @@ namespace Bishop_BSG_Tool
         {
             // Load source image file
 
-            var source = SixLabors.ImageSharp.Image.Load(sourcePath);
+            var source = Image.Load(sourcePath);
 
             if (source.PixelType.BitsPerPixel != 32)
             {
@@ -25,7 +24,7 @@ namespace Bishop_BSG_Tool
 
             // Copy pixel data
 
-            var image = source.CloneAs<SixLabors.ImageSharp.PixelFormats.Bgra32>();
+            var image = source.CloneAs<Bgra32>();
 
             // Flip image
 
