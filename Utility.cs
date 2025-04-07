@@ -11,7 +11,7 @@ namespace Bishop_BSG_Tool
     {
         public static bool PathIsFolder(string path)
         {
-            return new FileInfo(path).Attributes.HasFlag(FileAttributes.Directory);
+            return (File.GetAttributes(path) & FileAttributes.Directory) != 0;
         }
     }
 }
