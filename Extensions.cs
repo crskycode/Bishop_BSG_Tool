@@ -14,6 +14,11 @@ namespace Bishop_BSG_Tool
             writer.Write(value);
         }
 
+        public static void WriteInt16(this BinaryWriter writer, short value)
+        {
+            writer.Write(value);
+        }
+
         public static void WriteUInt16(this BinaryWriter writer, ushort value)
         {
             writer.Write(value);

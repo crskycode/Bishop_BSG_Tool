@@ -108,5 +108,37 @@ namespace Bishop_BSG_Tool
             writer.Write(total);
             writer.Seek(offset2, SeekOrigin.Begin);
         }
+
+        public static void RleUncompress(byte[] input, byte[] output, int dst, int pixel_size)
+        {
+            var stream = new MemoryStream(input);
+            var reader = new BinaryReader(stream);
+            int remaining = reader.ReadInt32();
+            while (remaining > 0)
+            {
+                int count = reader.ReadSByte();
+                --remaining;
+                if (count >= 0)
+                {
+                    for (int i = 0; i <= count; ++i)
+                    {
+                        output[dst] = reader.ReadByte();
+                        --remaining;
+                        dst += pixel_size;
+                    }
+                }
+                else
+                {
+                    count = 1 - count;
+                    byte repeat = reader.ReadByte();
+                    --remaining;
+                    for (int i = 0; i < count; ++i)
+                    {
+                        output[dst] = repeat;
+                        dst += pixel_size;
+                    }
+                }
+            }
+        }
     }
 }
