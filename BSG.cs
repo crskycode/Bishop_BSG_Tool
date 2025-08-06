@@ -291,5 +291,99 @@ namespace Bishop_BSG_Tool
             writer.Close();
             writer.Dispose();
         }
+
+        public static void ExtractBpp32(string filePath, string sourcePath)
+        {
+            using var stream = File.OpenRead(sourcePath);
+            using var reader = new BinaryReader(stream);
+
+            // File Header
+            var signature = reader.ReadBytes(16);
+
+            if (!signature.SequenceEqual(Signature))
+            {
+                throw new Exception("Not a valid BSG image file.");
+            }
+
+            reader.ReadByte();      // Some flags
+            reader.ReadByte();      // Always 1
+            reader.ReadInt32();     // Length of uncompressed pixel data
+            int width = reader.ReadUInt16();
+            int height = reader.ReadUInt16();
+            reader.ReadInt32();     // Always 16
+            reader.ReadByte();      // 0
+            reader.ReadByte();      // 0
+
+            // Image Description
+            reader.ReadInt16();     // 0
+            reader.ReadInt16();     // 0
+            reader.ReadInt16();     // 0
+            reader.ReadInt16();     // 0
+            reader.ReadInt16();     // Width (again)
+            reader.ReadInt16();     // Height (again)
+            reader.ReadByte();      // 0
+            reader.ReadByte();      // 1
+            reader.ReadInt16();     // 0
+
+            // Data Description
+            int bppType = reader.ReadByte();
+            int compressionMethod = reader.ReadByte();
+            int dataPosition = reader.ReadInt32();
+            int dataLength = reader.ReadInt32();
+            reader.ReadInt32();     // Position of palette pixel data
+            reader.ReadByte();      // 0
+            reader.ReadByte();      // 0
+
+            if (bppType != 0) // 0 means BPP32
+            {
+                throw new Exception("This method only supports BPP32 format.");
+            }
+
+            reader.BaseStream.Position = dataPosition;
+
+            byte[] pixels;
+
+            switch (compressionMethod)
+            {
+                case 0: // No compression
+                {
+                    pixels = reader.ReadBytes(dataLength);
+                    break;
+                }
+                case 1: // RLE compression
+                {
+                    var data = reader.ReadBytes(dataLength);
+                    pixels = new byte[width * height * 4]; // 4 bytes per pixel
+                    Compression.RleUncompress(data, pixels, 0, 4); // 4-byte stride
+                    break;
+                }
+                default:
+                {
+                    throw new Exception("This method only supports RAW and RLE compression methods.");
+                }
+            }
+
+            if (pixels.Length != width * height * 4)
+            {
+                throw new Exception("No pixels were read.");
+            }
+
+            // Load pixel data as BGRA32 (32Bit color)
+            var image = Image.LoadPixelData<Bgra32>(pixels, width, height);
+
+            image.Mutate(x => x.Flip(FlipMode.Vertical));
+
+            var pngEncoder = new PngEncoder
+            {
+                BitDepth = PngBitDepth.Bit8,
+                ColorType = PngColorType.RgbWithAlpha
+            };
+
+            image.SaveAsPng(filePath, pngEncoder);
+
+            stream.Close();
+            stream.Dispose();
+        }
+
     }
 }

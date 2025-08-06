@@ -92,8 +92,17 @@ namespace Bishop_BSG_Tool
                 }
                 else
                 {
-                    Console.WriteLine("Extract mode currently only supports the BPP8 format.");
-                    return;
+                    if (Utility.PathIsFolder(path))
+                    {
+                        foreach (var item in Directory.EnumerateFiles(path, "*.bsg"))
+                        {
+                            ExtractBpp32(item);
+                        }
+                    }
+                    else
+                    {
+                        ExtractBpp32(path);
+                    }
                 }
             }
 
@@ -146,6 +155,23 @@ namespace Bishop_BSG_Tool
                 Console.WriteLine($"Converting {bsgName}");
 
                 BSG.ExtractBpp8(pngPath, filePath);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.StackTrace);
+            }
+        }
+        static void ExtractBpp32(string filePath)
+        {
+            try
+            {
+                var pngPath = Path.ChangeExtension(filePath, ".png");
+                var bsgName = Path.GetFileName(filePath);
+
+                Console.WriteLine($"Converting {bsgName}");
+
+                BSG.ExtractBpp32(pngPath, filePath);
             }
             catch (Exception e)
             {
